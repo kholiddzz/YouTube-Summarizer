@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>YouTube Summarizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 20px;
+    }
+    .box {
+      max-width: 720px;
+      margin: auto;
+      background: #020617;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,.4);
+    }
+    h1 { text-align: center; }
+    input, textarea, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+    }
+    input, textarea {
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #334155;
+    }
+    textarea { min-height: 160px; }
+    button {
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #1d4ed8; }
+    .step {
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    a { color: #60a5fa; }
+    .warn { color: #facc15; font-size: 13px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h1>YouTube Summarize</h1>
+
+  <!-- STEP 1 -->
+  <div class="step">
+    <b>STEP 1 – Ambil isi video (tanpa nonton)</b><br>
+    1. Paste link YouTube nya dulu<br>
+    2. Klik tombol <b>Buka Transkrip</b><br>
+    3. Copy semua teks penjelasan video
+  </div>
+
+  <input id="yturl" placeholder="Paste link YouTube nya di sini anj" />
+  <button onclick="openTranscript()">Buka Transkrip Video</button>
+
+  <!-- STEP 2 -->
+  <div class="step">
+    <b>STEP 2 – Paste teks penjelasan video</b>
+  </div>
+
+  <textarea id="transcript" placeholder="terus Paste hasil transkrip YouTube di sini ya mmek..."></textarea>
+
+  <!-- STEP 3 -->
+  <div class="step">
+    <b>STEP 3 – Ringkas otomatis</b>
+  </div>
+
+  <input id="apikey" placeholder="Masukkan OpenAI API Key" />
+  <button onclick="summarize()">Ringkas Video</button>
+
+  <textarea id="result" placeholder="Hasil ringkasan muncul di sini..."></textarea>
+
+  <div class="warn">
+    👤 Kholiddzz
+  </div>
+
+  <div class="step">
+    🔑 Belum punya API Key?<br>
+    👉 <a href="https://platform.openai.com/api-keys" target="_blank">Klik di sini untuk membuat OpenAI API Key</a>
+  </div>
+</div>
+
+<script>
+function openTranscript() {
+  const url = document.getElementById('yturl').value.trim();
+  if (!url) {
+    alert('Mana link nya ngentod ah bete gua jing😹');
+    return;
+  }
+  // buka website transkrip (tanpa nonton video)
+  const transcriptUrl = 'https://downsub.com/' + encodeURIComponent(url);
+  window.open(transcriptUrl, '_blank');
+}
+
+async function summarize() {
+  const key = document.getElementById('apikey').value.trim();
+  const text = document.getElementById('transcript').value.trim();
+  const output = document.getElementById('result');
+
+  if (!key || !text) {
+    alert('API Key dan teks transkrip wajib diisi cok');
+    return;
+  }
+
+  output.value = 'Meringkas isi video...';
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + key
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'user',
+            content: 'Ringkas teks berikut dengan bahasa sederhana untuk tugas sekolah:\n\n' + text
+          }
+        ]
+      })
+    });
+
+    const data = await res.json();
+    output.value = data.choices?.[0]?.message?.content || 'Gagal meringkas.';
+
+  } catch (err) {
+    output.value = 'Error: ' + err.message;
+  }
+}
+</script>
+
+</body>
+</html>
